@@ -7,13 +7,12 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
-// --- BAGIAN PENAMBAHAN UNTUK BACA KEYSTORE ---
+// Menyiapkan variabel untuk membaca file kunci
 val keystoreProperties = Properties()
 val keystorePropertiesFile = rootProject.projectDir.resolve("key.properties")
 if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
-// ---------------------------------------------
 
 android {
     namespace = "com.ilham.tictactoe"
@@ -29,16 +28,19 @@ android {
         jvmTarget = JavaVersion.VERSION_11.toString()
     }
 
-    // --- KONFIGURASI TANDA TANGAN (SIGNING) ---
     signingConfigs {
         create("release") {
-            keyAlias = keystoreProperties["keyAlias"] as String
-            keyPassword = keystoreProperties["keyPassword"] as String
-            storeFile = keystoreProperties["storeFile"]?.let { rootProject.projectDir.resolve(it as String) }
-            storePassword = keystoreProperties["storePassword"] as String
+            // Menggunakan getProperty agar tidak crash jika null
+            keyAlias = keystoreProperties.getProperty("keyAlias")
+            keyPassword = keystoreProperties.getProperty("keyPassword")
+            storePassword = keystoreProperties.getProperty("storePassword")
+            
+            val fileProp = keystoreProperties.getProperty("storeFile")
+            if (fileProp != null) {
+                storeFile = rootProject.projectDir.resolve(fileProp)
+            }
         }
     }
-    // ------------------------------------------
 
     defaultConfig {
         applicationId = "com.ilham.tictactoe"
@@ -50,10 +52,10 @@ android {
 
     buildTypes {
         release {
-            // Menggunakan konfigurasi signing "release" yang sudah kita buat
+            // Menggunakan konfigurasi tanda tangan yang kita buat di atas
             signingConfig = signingConfigs.getByName("release")
             
-            // Tambahkan awalan 'is' agar terbaca oleh Kotlin DSL
+            // Perbaikan sintaks isMinifyEnabled untuk Kotlin DSL
             isMinifyEnabled = false
             isShrinkResources = false
         }
