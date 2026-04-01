@@ -7,11 +7,15 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
-// Menyiapkan variabel untuk membaca file kunci
+// 1. Load file key.properties dengan cara yang lebih pasti
 val keystoreProperties = Properties()
 val keystorePropertiesFile = rootProject.projectDir.resolve("key.properties")
+
 if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+    println("BERHASIL: File key.properties ditemukan di: ${keystorePropertiesFile.absolutePath}")
+} else {
+    println("PERINGATAN: File key.properties TIDAK DITEMUKAN di: ${keystorePropertiesFile.absolutePath}")
 }
 
 android {
@@ -28,16 +32,17 @@ android {
         jvmTarget = JavaVersion.VERSION_11.toString()
     }
 
+    // 2. Konfigurasi signing yang lebih aman
     signingConfigs {
         create("release") {
-            // Menggunakan getProperty agar tidak crash jika null
-            keyAlias = keystoreProperties.getProperty("keyAlias")
-            keyPassword = keystoreProperties.getProperty("keyPassword")
-            storePassword = keystoreProperties.getProperty("storePassword")
+            // Kita pakai "?: """ supaya kalau null dia jadi teks kosong, bukan error NullPointer
+            keyAlias = keystoreProperties.getProperty("keyAlias") ?: ""
+            keyPassword = keystoreProperties.getProperty("keyPassword") ?: ""
+            storePassword = keystoreProperties.getProperty("storePassword") ?: ""
             
-            val fileProp = keystoreProperties.getProperty("storeFile")
-            if (fileProp != null) {
-                storeFile = rootProject.projectDir.resolve(fileProp)
+            val storeFileName = keystoreProperties.getProperty("storeFile")
+            if (storeFileName != null) {
+                storeFile = rootProject.projectDir.resolve(storeFileName)
             }
         }
     }
@@ -52,10 +57,13 @@ android {
 
     buildTypes {
         release {
-            // Menggunakan konfigurasi tanda tangan yang kita buat di atas
-            signingConfig = signingConfigs.getByName("release")
+            // Gunakan signing release HANYA JIKA datanya lengkap
+            if (keystoreProperties.containsKey("keyAlias")) {
+                signingConfig = signingConfigs.getByName("release")
+            } else {
+                signingConfig = signingConfigs.getByName("debug")
+            }
             
-            // Perbaikan sintaks isMinifyEnabled untuk Kotlin DSL
             isMinifyEnabled = false
             isShrinkResources = false
         }
