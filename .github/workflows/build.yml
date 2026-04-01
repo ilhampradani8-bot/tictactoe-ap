@@ -3,7 +3,7 @@ name: Build and Sign Android AAB
 on:
   push:
     branches: [ "main" ]
-  workflow_dispatch: # Tombol rahasia biar kamu bisa klik 'Run workflow' manual
+  workflow_dispatch:
 
 jobs:
   build:
@@ -11,10 +11,10 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4 # Update ke v4
 
       - name: Setup Java
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4 # Update ke v4
         with:
           distribution: 'zulu'
           java-version: '17'
@@ -32,17 +32,15 @@ jobs:
 
       - name: Sign App Bundle dengan Keystore
         run: |
-          # Membaca key.properties untuk mendapatkan password
           export STORE_PASS=$(grep storePassword key.properties | cut -d'=' -f2 | tr -d '\r')
           export KEY_PASS=$(grep keyPassword key.properties | cut -d'=' -f2 | tr -d '\r')
           export ALIAS=$(grep keyAlias key.properties | cut -d'=' -f2 | tr -d '\r')
           export STORE_FILE=$(grep storeFile key.properties | cut -d'=' -f2 | tr -d '\r')
           
-          # Jarsigner akan mengunci AAB dengan identitas keystore kamu
           jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore $STORE_FILE -storepass $STORE_PASS -keypass $KEY_PASS build/app/outputs/bundle/release/app-release.aab $ALIAS
 
       - name: Upload AAB Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4 # INI YANG WAJIB DIUBAH KE V4
         with:
           name: tictactoe-release-aab
           path: build/app/outputs/bundle/release/app-release.aab
