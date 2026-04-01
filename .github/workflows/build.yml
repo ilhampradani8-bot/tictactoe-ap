@@ -11,10 +11,10 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4 # Update ke v4
+        uses: actions/checkout@v4
 
       - name: Setup Java
-        uses: actions/setup-java@v4 # Update ke v4
+        uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
@@ -30,17 +30,8 @@ jobs:
       - name: Build Android App Bundle (AAB)
         run: flutter build appbundle --release
 
-      - name: Sign App Bundle dengan Keystore
-        run: |
-          export STORE_PASS=$(grep storePassword key.properties | cut -d'=' -f2 | tr -d '\r')
-          export KEY_PASS=$(grep keyPassword key.properties | cut -d'=' -f2 | tr -d '\r')
-          export ALIAS=$(grep keyAlias key.properties | cut -d'=' -f2 | tr -d '\r')
-          export STORE_FILE=$(grep storeFile key.properties | cut -d'=' -f2 | tr -d '\r')
-          
-          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore $STORE_FILE -storepass $STORE_PASS -keypass $KEY_PASS build/app/outputs/bundle/release/app-release.aab $ALIAS
-
       - name: Upload AAB Artifact
-        uses: actions/upload-artifact@v4 # INI YANG WAJIB DIUBAH KE V4
+        uses: actions/upload-artifact@v4
         with:
           name: tictactoe-release-aab
           path: build/app/outputs/bundle/release/app-release.aab
