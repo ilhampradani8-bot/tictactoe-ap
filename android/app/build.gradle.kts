@@ -50,11 +50,12 @@ android {
 
     buildTypes {
         release {
-            // UBAH DARI "debug" MENJADI "release"
+            // Menggunakan konfigurasi signing "release" yang sudah kita buat
             signingConfig = signingConfigs.getByName("release")
             
-            minifyEnabled = false
-            shrinkResources = false
+            // Tambahkan awalan 'is' agar terbaca oleh Kotlin DSL
+            isMinifyEnabled = false
+            isShrinkResources = false
         }
     }
 }
